@@ -1,9 +1,14 @@
-import Uploaoding_photo
+import uploaoding_photo
 
 VK_TOKEN = ""
 YA_TOKEN = ""
 
-if __name__ == '__main__':
-    u = Uploaoding_photo.YaUploader(token=YA_TOKEN)
-    print(u.upload_foto())
+success = "Все фото успешно загружены на Yandex Диск."
+error = "Произошла ошибка при загрузке!"
+incorrect_id = "Введено неккоректное имя или ID."
 
+
+if __name__ == "__main__":
+
+    ya = uploaoding_photo.YaUploader(token=YA_TOKEN)
+    print(ya.upload_photo())

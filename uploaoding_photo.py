@@ -1,19 +1,20 @@
-import requests, json, time
+import requests, json, time, sys
 from tqdm import tqdm
-from main import VK_TOKEN
+from main import VK_TOKEN, success, error, incorrect_id
+
 
 class VkData:
 
     def __init__(self, token):
         self.token = token
-        self.version = 5.103
+        self.version_vk = 5.103
         self.vk_user_id = input("Введите ID вашей страницы ВК или короткое имя: ")
         self.params = {
-            "access_token":self.token,
-            "v":self.version
+            "access_token": self.token,
+            "v":self.version_vk
         }
 
-    #Метод проверки id и поиск id по короткому имени
+    # Метод проверки id и поиск id по короткому имени
     def get_id(self, user_id):
         id_params = {
             "user_ids": user_id
@@ -22,11 +23,12 @@ class VkData:
             response = requests.get("https://api.vk.com/method/users.get", params={**self.params, **id_params})
             return response.json()["response"][0]["id"]
         except KeyError:
-            return "Введено неккоректное имя или ID."
+            print(incorrect_id)
+            sys.exit()
 
-    #Метод получения данных фото из ВК
-    def get_foto_data(self, ID, offset=0, count=5):
-        foto_params = {
+    # Метод получения данных фото из ВК
+    def get_photo_data(self, ID, offset=0, count=5):
+        photo_params = {
             "owner_id": ID,
             "album_id": "profile",
             "offset": offset,
@@ -34,7 +36,7 @@ class VkData:
             "photo_sizes": 0,
             "extended": 1
         }
-        response = requests.get("https://api.vk.com/method/photos.get", params={**self.params, **foto_params})
+        response = requests.get("https://api.vk.com/method/photos.get", params={**self.params, **photo_params})
         return response.json()
 
 class YaUploader:
@@ -44,32 +46,34 @@ class YaUploader:
         self.HOST = "https://cloud-api.yandex.net:443"
         self.url = f"{self.HOST}/v1/disk/resources/upload"
         self.headers = {"Authorization": self.token}
-    #Метод загрузки фоток на яндекс диск
-    def upload_foto(self):
+
+    # Метод загрузки фоток на яндекс диск
+    def upload_photo(self):
 
         vk = VkData(token=VK_TOKEN)
-        foto_data = vk.get_foto_data(vk.get_id(vk.vk_user_id))
-        fotos = []
+        photo_data = vk.get_photo_data(vk.get_id(vk.vk_user_id))
+        photos = []
         try:
-            for i, files in enumerate(tqdm(foto_data["response"]["items"])):
+            for files in tqdm(photo_data["response"]["items"]):
                 file_url = files["sizes"][-1]["url"]
                 file_name = files["likes"]["count"]
                 dict = {'file_name':f"{file_name}.jpg"}
                 dict["size"] = f'{files["sizes"][-1]["type"]}'
-                fotos.append(dict)
+                photos.append(dict)
                 params = {"path":f"netologiya/{file_name}.jpg","url":file_url}
                 response = requests.post(self.url, headers=self.headers, params=params)
                 time.sleep(1.5)
-            #json фоток
-            with open('data1.txt', 'w') as outfile:
-                json.dump(fotos, outfile)
+            # json файл с информацией
+            with open("info_file.json", 'w') as outfile:
+                json.dump(photos, outfile)
 
             if response.status_code == 202:
-                return "Все фото успешно загружены на Yandex Диск."
+                return success
             else:
-                return "Произошла ошибка при загрузке!"
+                return error
         except KeyError:
-            return "Произошла ошибка при загрузке!"
+            return error
+
 
 
 
