@@ -1,10 +1,9 @@
 import requests, json, time, sys
 from tqdm import tqdm
 
-VK_TOKEN = "958eb5d439726565e9333aa30e50e0f937ee432e927f0dbd541c541887d919a7c56f95c04217915c32008"
+VK_TOKEN = ""
 
 class VkData:
-
 
     def __init__(self, token):
         self.token = token
@@ -24,8 +23,8 @@ class VkData:
             response = requests.get("https://api.vk.com/method/users.get", params={**self.params, **id_params})
             return response.json()["response"][0]["id"]
         except KeyError:
-            print("Неверный ID:")
-            self.get_id()
+            print(incorrect_id)
+            sys.exit()
 
     # Метод получения данных фото из ВК
     def get_photo_data(self, ID, offset=0, count=5):
@@ -39,6 +38,7 @@ class VkData:
         }
         response = requests.get("https://api.vk.com/method/photos.get", params={**self.params, **photo_params})
         return response.json()
+
 
 class YaUploader:
 
