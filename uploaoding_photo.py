@@ -1,14 +1,14 @@
 import requests, json, time, sys
 from tqdm import tqdm
-from main import VK_TOKEN, success, error, incorrect_id
 
+VK_TOKEN = "958eb5d439726565e9333aa30e50e0f937ee432e927f0dbd541c541887d919a7c56f95c04217915c32008"
 
 class VkData:
+
 
     def __init__(self, token):
         self.token = token
         self.version_vk = 5.103
-        self.vk_user_id = input("Введите ID вашей страницы ВК или короткое имя: ")
         self.params = {
             "access_token": self.token,
             "v":self.version_vk
@@ -16,6 +16,7 @@ class VkData:
 
     # Метод проверки id и поиск id по короткому имени
     def get_id(self, user_id):
+        incorrect_id = "Введено неккоректное имя или ID."
         id_params = {
             "user_ids": user_id
         }
@@ -23,8 +24,8 @@ class VkData:
             response = requests.get("https://api.vk.com/method/users.get", params={**self.params, **id_params})
             return response.json()["response"][0]["id"]
         except KeyError:
-            print(incorrect_id)
-            sys.exit()
+            print("Неверный ID:")
+            self.get_id()
 
     # Метод получения данных фото из ВК
     def get_photo_data(self, ID, offset=0, count=5):
@@ -41,17 +42,20 @@ class VkData:
 
 class YaUploader:
 
-    def __init__(self, token):
+    def __init__(self, token, vk_user_id):
         self.token = token
+        self.vk_user_id = vk_user_id
         self.HOST = "https://cloud-api.yandex.net:443"
         self.url = f"{self.HOST}/v1/disk/resources/upload"
         self.headers = {"Authorization": self.token}
 
     # Метод загрузки фоток на яндекс диск
     def upload_photo(self):
+        success = "Все фото успешно загружены на Yandex Диск."
+        error = "Произошла ошибка при загрузке!"
 
         vk = VkData(token=VK_TOKEN)
-        photo_data = vk.get_photo_data(vk.get_id(vk.vk_user_id))
+        photo_data = vk.get_photo_data(vk.get_id(self.vk_user_id))
         photos = []
         try:
             for files in tqdm(photo_data["response"]["items"]):
