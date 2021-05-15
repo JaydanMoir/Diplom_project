@@ -1,8 +1,6 @@
 import requests, json, time, sys
 from tqdm import tqdm
 
-VK_TOKEN = ""
-
 class VkData:
 
     def __init__(self, token):
@@ -42,20 +40,17 @@ class VkData:
 
 class YaUploader:
 
-    def __init__(self, token, vk_user_id):
+    def __init__(self, token):
         self.token = token
-        self.vk_user_id = vk_user_id
         self.HOST = "https://cloud-api.yandex.net:443"
         self.url = f"{self.HOST}/v1/disk/resources/upload"
         self.headers = {"Authorization": self.token}
 
     # Метод загрузки фоток на яндекс диск
-    def upload_photo(self):
+    def upload_photo(self, photo_data):
         success = "Все фото успешно загружены на Yandex Диск."
         error = "Произошла ошибка при загрузке!"
 
-        vk = VkData(token=VK_TOKEN)
-        photo_data = vk.get_photo_data(vk.get_id(self.vk_user_id))
         photos = []
         try:
             for files in tqdm(photo_data["response"]["items"]):
